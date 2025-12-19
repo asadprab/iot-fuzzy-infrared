@@ -1,21 +1,53 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
   <meta charset="utf-8">
   <title>IoT Fuzzy Infrared Therapy (WIB)</title>
 
-  <!-- Firebase SDK v9 (compat) -->
+  <!-- Firebase SDK v9 compat -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <style>
-    body { background:linear-gradient(135deg,#e0f7fa,#80deea); font-family:'Poppins',sans-serif; color:#004d40; text-align:center; padding:20px; }
-    .card{ background:white; display:inline-block; padding:15px; margin:8px; border-radius:16px; box-shadow:0 4px 10px rgba(0,0,0,0.2); width:200px; }
-    .value{ font-size:28px; font-weight:bold; margin-top:10px; color:#00796b; }
-    .buttonStop{ background-color:#e53935; color:white; border:none; border-radius:10px; padding:10px 20px; font-size:16px; cursor:pointer; margin-top:15px; }
-    input{ width:50px; }
+    body{
+      background:linear-gradient(135deg,#e0f7fa,#80deea);
+      font-family:'Poppins',sans-serif;
+      color:#004d40;
+      text-align:center;
+      padding:20px;
+    }
+    .card{
+      background:white;
+      display:inline-block;
+      padding:15px;
+      margin:8px;
+      border-radius:16px;
+      box-shadow:0 4px 10px rgba(0,0,0,0.2);
+      width:210px;
+    }
+    .value{
+      font-size:26px;
+      font-weight:bold;
+      margin-top:10px;
+      color:#00796b;
+    }
+    .status-aktif{ color:#2e7d32; }
+    .status-standby{ color:#616161; }
+
+    .btn{
+      border:none;
+      border-radius:12px;
+      padding:10px 22px;
+      font-size:16px;
+      cursor:pointer;
+      margin:6px;
+    }
+    .btn-start{ background:#00897b; color:white; }
+    .btn-stop{ background:#e53935; color:white; }
+    input{ width:55px; text-align:center; }
   </style>
 </head>
+
 <body>
 
 <h1>🌡 IoT Fuzzy Infrared Therapy</h1>
@@ -24,20 +56,23 @@
 <div class="card"><h3>🌡 Suhu (°C)</h3><div id="suhu" class="value">--</div></div>
 <div class="card"><h3>📏 Jarak (cm)</h3><div id="jarak" class="value">--</div></div>
 <div class="card"><h3>🔥 Daya (%)</h3><div id="daya" class="value">--</div></div>
-<div class="card"><h3>🕓 Status Timer</h3><div id="status" class="value">--</div></div>
+<div class="card"><h3>🕓 Status</h3><div id="status" class="value">--</div></div>
 
-<h3>🔧 Atur Durasi Timer</h3>
-Jam <input id="durH" type="number" min="0" max="23"> :
-Menit <input id="durM" type="number" min="0" max="59"> :
-Detik <input id="durS" type="number" min="0" max="59">
+<h3>⏱️ Atur Durasi Timer</h3>
+Jam <input id="durH" type="number" min="0" max="23" value="0"> :
+Menit <input id="durM" type="number" min="0" max="59" value="0"> :
+Detik <input id="durS" type="number" min="0" max="59" value="0">
 <br><br>
-<button onclick="startTimer()">Mulai Timer</button>
-<br>
-<button class="buttonStop" onclick="stopTimer()">Stop Timer</button>
 
-<div style="margin-top:30px;font-size:13px;color:#555;">ESP32 • Fuzzy Logic • RTC NTP Sync • WIB</div>
+<button class="btn btn-start" onclick="startTimer()">Mulai Timer</button>
+<button class="btn btn-stop" onclick="stopTimer()">Stop Timer</button>
+
+<div style="margin-top:30px;font-size:13px;color:#555;">
+ESP32 • Firebase RTDB • Fuzzy Logic • RTC NTP (WIB)
+</div>
 
 <script>
+  // ===== Firebase Config =====
   const firebaseConfig = {
     apiKey: "AIzaSyD-g4X4wy0F2SO3i8lYWdiROl5zE03Mgww",
     authDomain: "iot-fuzzy-infrared.firebaseapp.com",
@@ -51,23 +86,36 @@ Detik <input id="durS" type="number" min="0" max="59">
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
-  // realtime display
+  const jam    = document.getElementById("jam");
+  const suhu   = document.getElementById("suhu");
+  const jarak  = document.getElementById("jarak");
+  const daya   = document.getElementById("daya");
+  const status = document.getElementById("status");
+
+  // ===== REALTIME DATA =====
   db.ref("iot/data").on("value", snap => {
     const d = snap.val();
     if(!d) return;
-    jam.innerHTML = d.jam;
-    suhu.innerHTML = d.suhu;
-    jarak.innerHTML = d.jarak;
-    daya.innerHTML = d.daya;
-    status.innerHTML = d.status;
+
+    jam.textContent   = d.jam ?? "--:--:--";
+    suhu.textContent  = d.suhu ?? "--";
+    jarak.textContent = d.jarak ?? "--";
+    daya.textContent  = d.daya ?? "--";
+
+    status.textContent = d.status ?? "--";
+    if(d.status && d.status.startsWith("Aktif")){
+      status.className = "value status-aktif";
+    } else {
+      status.className = "value status-standby";
+    }
   });
 
   function startTimer(){
     db.ref("iot/command").set({
-      action: "start",
-      durH: Number(durH.value||0),
-      durM: Number(durM.value||0),
-      durS: Number(durS.value||0)
+      action:"start",
+      durH:Number(durH.value||0),
+      durM:Number(durM.value||0),
+      durS:Number(durS.value||0)
     });
   }
 
