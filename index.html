@@ -2,6 +2,8 @@
 <html lang="id">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>IoT Fuzzy Infrared Therapy (WIB)</title>
 
   <!-- Firebase SDK v9 compat -->
@@ -9,66 +11,180 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <style>
+    *{
+      box-sizing:border-box;
+    }
+
     body{
-      background:linear-gradient(135deg,#e0f7fa,#80deea);
+      margin:0;
+      padding:16px;
       font-family:'Poppins',sans-serif;
+      background:linear-gradient(180deg,#e0f7fa,#80deea);
       color:#004d40;
+    }
+
+    h1{
       text-align:center;
-      padding:20px;
+      font-size:22px;
+      margin-bottom:18px;
     }
+
+    .container{
+      max-width:420px;
+      margin:auto;
+    }
+
     .card{
-      background:white;
-      display:inline-block;
-      padding:15px;
-      margin:8px;
-      border-radius:16px;
-      box-shadow:0 4px 10px rgba(0,0,0,0.2);
-      width:210px;
+      background:#ffffff;
+      border-radius:18px;
+      padding:14px;
+      margin-bottom:12px;
+      box-shadow:0 6px 14px rgba(0,0,0,0.15);
     }
+
+    .card h3{
+      margin:0;
+      font-size:14px;
+      font-weight:600;
+      color:#00695c;
+    }
+
     .value{
+      margin-top:6px;
       font-size:26px;
       font-weight:bold;
-      margin-top:10px;
       color:#00796b;
     }
-    .status-aktif{ color:#2e7d32; }
-    .status-standby{ color:#616161; }
+
+    .status-aktif{
+      color:#2e7d32;
+    }
+
+    .status-standby{
+      color:#616161;
+    }
+
+    .timer{
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      margin-top:10px;
+    }
+
+    .timer div{
+      flex:1;
+      text-align:center;
+    }
+
+    .timer label{
+      font-size:12px;
+      display:block;
+      margin-bottom:4px;
+    }
+
+    input{
+      width:100%;
+      padding:8px;
+      border-radius:10px;
+      border:1px solid #b2dfdb;
+      text-align:center;
+      font-size:16px;
+    }
+
+    .btn-group{
+      display:flex;
+      gap:10px;
+      margin-top:16px;
+    }
 
     .btn{
+      flex:1;
       border:none;
-      border-radius:12px;
-      padding:10px 22px;
+      border-radius:14px;
+      padding:12px;
       font-size:16px;
+      font-weight:600;
       cursor:pointer;
-      margin:6px;
     }
-    .btn-start{ background:#00897b; color:white; }
-    .btn-stop{ background:#e53935; color:white; }
-    input{ width:55px; text-align:center; }
+
+    .btn-start{
+      background:#00897b;
+      color:white;
+    }
+
+    .btn-stop{
+      background:#e53935;
+      color:white;
+    }
+
+    .footer{
+      margin-top:24px;
+      text-align:center;
+      font-size:12px;
+      color:#555;
+    }
   </style>
 </head>
 
 <body>
 
-<h1>🌡 IoT Fuzzy Infrared Therapy</h1>
+<div class="container">
 
-<div class="card"><h3>🕒 Waktu (WIB)</h3><div id="jam" class="value">--:--:--</div></div>
-<div class="card"><h3>🌡 Suhu (°C)</h3><div id="suhu" class="value">--</div></div>
-<div class="card"><h3>📏 Jarak (cm)</h3><div id="jarak" class="value">--</div></div>
-<div class="card"><h3>🔥 Daya (%)</h3><div id="daya" class="value">--</div></div>
-<div class="card"><h3>🕓 Status</h3><div id="status" class="value">--</div></div>
+  <h1>🌡 IoT Fuzzy Infrared Therapy</h1>
 
-<h3>⏱️ Atur Durasi Timer</h3>
-Jam <input id="durH" type="number" min="0" max="23" value="0"> :
-Menit <input id="durM" type="number" min="0" max="59" value="0"> :
-Detik <input id="durS" type="number" min="0" max="59" value="0">
-<br><br>
+  <div class="card">
+    <h3>🕒 Waktu (WIB)</h3>
+    <div id="jam" class="value">--:--:--</div>
+  </div>
 
-<button class="btn btn-start" onclick="startTimer()">Mulai Timer</button>
-<button class="btn btn-stop" onclick="stopTimer()">Stop Timer</button>
+  <div class="card">
+    <h3>🌡 Suhu (°C)</h3>
+    <div id="suhu" class="value">--</div>
+  </div>
 
-<div style="margin-top:30px;font-size:13px;color:#555;">
-ESP32 • Firebase RTDB • Fuzzy Logic • RTC NTP (WIB)
+  <div class="card">
+    <h3>📏 Jarak (cm)</h3>
+    <div id="jarak" class="value">--</div>
+  </div>
+
+  <div class="card">
+    <h3>🔥 Daya (%)</h3>
+    <div id="daya" class="value">--</div>
+  </div>
+
+  <div class="card">
+    <h3>🕓 Status</h3>
+    <div id="status" class="value">--</div>
+  </div>
+
+  <div class="card">
+    <h3>⏱️ Atur Durasi Timer</h3>
+
+    <div class="timer">
+      <div>
+        <label>Jam</label>
+        <input id="durH" type="number" min="0" max="23" value="0">
+      </div>
+      <div>
+        <label>Menit</label>
+        <input id="durM" type="number" min="0" max="59" value="0">
+      </div>
+      <div>
+        <label>Detik</label>
+        <input id="durS" type="number" min="0" max="59" value="0">
+      </div>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn btn-start" onclick="startTimer()">▶ Mulai</button>
+      <button class="btn btn-stop" onclick="stopTimer()">■ Stop</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    ESP32 • Firebase RTDB • Fuzzy Logic • RTC NTP (WIB)
+  </div>
+
 </div>
 
 <script>
@@ -92,7 +208,6 @@ ESP32 • Firebase RTDB • Fuzzy Logic • RTC NTP (WIB)
   const daya   = document.getElementById("daya");
   const status = document.getElementById("status");
 
-  // ===== REALTIME DATA =====
   db.ref("iot/data").on("value", snap => {
     const d = snap.val();
     if(!d) return;
